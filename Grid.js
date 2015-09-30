@@ -3,6 +3,7 @@
 var Grid = function() {
 	// Initialize with default values
 	this.size = 20;
+    this.outside_cell_state = "dead";
 	this.r = 1;
 	this.l = 2;
 	this.o = 3;
@@ -19,6 +20,14 @@ Grid.prototype.set_size = function(size) {
 
 Grid.prototype.valid_size = function(size) {
 	return size >= 20 && size <= 200;
+};
+
+Grid.prototype.set_outside_cell_state = function(state) {
+    if (this.valid_outside_cell_state(state)) this.outside_cell_state = state;
+};
+
+Grid.prototype.valid_outside_cell_state = function(state) {
+    return state === "alive" || state === "dead" || state === "toroidal";
 };
 
 Grid.prototype.set_r = function(r) {
@@ -65,51 +74,109 @@ Grid.prototype.valid_gmax = function(gmax) {
 // Game rules and update logic //
 /////////////////////////////////
 Grid.prototype.step = function() {
-	var cell_state = this.get_cell_state;
-	var alive_neighbor_count = this.get_alive_neighbor_count(cell_state);
+	var cell_state = this.get_cell_state();
+	this.update_cell_states(cell_state);
 };
 
 // Populate matrix with 1s and 0s, representing alive and dead cells
 Grid.prototype.get_cell_state = function() {
 	var cells = this.build_matrix(this.size, this.size);
 	$("td").each(function(index,cell) {
-		var pos = this.get_cell_position($(cell).attr("id"));
-		if ($(cell).hasClass("alive")) {
+		var pos = get_cell_position($(cell).attr("id"));
+		if (cell_alive(cell)) {
 			cells[pos[0]][pos[1]] = 1;
 		} else {
 			cells[pos[0]][pos[1]] = 0;
 		}
 	});
+    return cells;
 };
 
-// Populate matrix with number of alive neighbors - value at (r,c) represents alive neighbor count for cell (r,c)
-Grid.prototype.get_alive_neighbor_count = function(cell_states) {
-	var alive_neighbor_count = this.build_matrix(this.size, this.size);
+var cell_alive = function(cell) {
+    return $(cell).hasClass("alive");
+};
+
+// Count number of alive neighbors for each cell and update cell state based on that value
+Grid.prototype.update_cell_states = function(cell_states) {
 	for (var r=0; r<this.size; r++) {
 		for (var c=0; c<this.size; c++) {
-			alive_neighbor_count[r][c] = this.count_alive_neighbors(cell_states, r,c);
+			var alive_neighbor_count = this.count_alive_neighbors(cell_states,r,c);
+            var cell_alive = cell_states[r][c] == 1;
+            this.update_cell_state(alive_neighbor_count,cell_alive,r,c);
 		}
 	}
 };
 
 Grid.prototype.count_alive_neighbors = function(states, row, col) {
+    var count = 0;
 
+    // Loop over subset of cells within radius this.r of the cell
+    for (var r = row - this.r; r <= row + this.r; r++) {
+        for (var c = col - this.r; c <= col + this.r; c++) {
+            if (this.pointOutsideGrid(r,c)) {
+                count += this.checkOutsideNeighbor(r,c);
+            } else if (r != row || c != col) {
+                // states is matrix of 1s and 0s, representing alive and dead cells
+                count += states[r][c];
+            }
+        }
+    }
+    return count;
+};
+
+// Update specific cell state based on number of alive neighbors
+Grid.prototype.update_cell_state = function(count,alive,r,c) {
+    if (alive) {
+        if (count < this.l || count > this.o) {
+            this.kill(cell_id(r,c));
+        }
+    } else {
+        if (count >= this.gmin && count <= this.gmax) {
+            this.revive(cell_id(r,c));
+        }
+    }
+};
+
+Grid.prototype.pointOutsideGrid = function(i,j) {
+    return i < 0 || i >= this.size || j < 0 || j >= this.size;
+};
+
+// Handle the state of neighbors outside the matrix
+Grid.prototype.checkOutsideNeighbor = function(r,c) {
+    if (this.outside_cell_state === 'dead') {
+        return 0;
+    } else if (this.outside_cell_state === 'alive') {
+        return 1;
+    } else {
+        r = this.wrap(r);
+        c = this.wrap(c);
+        var cell = $("#" + cell_id(r,c));
+        if (cell_alive(cell)) return 1;
+        return 0;
+    }
+};
+
+// Wrap index to the other side of matrix - used with "toroidal" state
+Grid.prototype.wrap = function(i) {
+    i %= this.size;
+    while (i < 0) i += this.size;
+    return i;
 };
 
 Grid.prototype.kill = function(id) {
-    this.update_cell_state(id,"dead");
+    this.change_cell_state(id,"dead");
 };
 
 Grid.prototype.revive = function(id) {
-    this.update_cell_state(id,"alive");
+    this.change_cell_state(id,"alive");
 };
 
 Grid.prototype.flip_state = function(id) {
-    if ($("#" + id).hasClass("alive")) this.update_cell_state(id,"dead");
-    else this.update_cell_state(id,"alive");
+    if ($("#" + id).hasClass("alive")) this.change_cell_state(id,"dead");
+    else this.change_cell_state(id,"alive");
 };
 
-Grid.prototype.update_cell_state = function(id,new_state) {
+Grid.prototype.change_cell_state = function(id,new_state) {
     var cell = $("#" + id);
     if (new_state === "dead") {
         // If cell previously alive, make next state 'was-alive', otherwise 'dead'
@@ -132,8 +199,13 @@ Grid.prototype.build_matrix = function(r,c) {
 };
 
 // IDs of the form "r_c"
-Grid.prototype.get_cell_position = function(id) {
+var get_cell_position = function(id) {
 	return id.split("_");
+};
+
+// Get cell ID from position
+var cell_id = function(r,c) {
+    return r + "_" + c;
 };
 
 
@@ -169,7 +241,7 @@ Grid.prototype.draw = function() {
             this.create_cell(r,c);
         }
     }
-    this.reset();
+    this.random();
 };
 
 Grid.prototype.create_row = function(r) {
