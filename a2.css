@@ -1,0 +1,73 @@
+/* Copyright 2015 Dayton Bobbitt */
+
+body {
+	background-color: #789595;
+}
+
+div {
+	margin: auto;
+	text-align: center;
+	/*border: 1px solid black;*/
+}
+
+select {
+	width: 75px;
+}
+
+td {
+	border: 1px solid #B0B0B0;	/* Light shade of gray */
+}
+
+table {
+	/*width: 600px;
+	height: 600px;*/
+	border-collapse: collapse;
+	table-layout: fixed;
+}
+
+#game {
+	position: relative;
+	width: 575px;
+	height: 500px;
+}
+
+#control-panel {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 400px;
+	height: 100px;
+}
+
+#main-panel {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: 400px;
+	height: 400px;
+	background-color: white;
+}
+
+#parameters-panel {
+	position: absolute;
+	bottom: 0;
+	right: 0;
+	width: 175px;
+	height: 400px;
+}
+
+.parameter:not(:first-child) {
+	padding-top: 10px;
+}
+
+.alive {
+	background-color: #008A2E;	/* Dark shade of green */
+}
+
+.was-alive {
+	background-color: #66C266;	/* Light shade of green */
+}
+
+.dead {							
+	background-color: #AAAAAA;	/* Shade of gray */
+}

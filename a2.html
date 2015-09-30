@@ -1,0 +1,67 @@
+<!-- Copyright 2015 Dayton Bobbitt -->
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Dayton's Game of Life</title>
+		<link rel="stylesheet" type="text/css" href="a2.css">
+		<script type="text/javascript" src="http://www.cs.unc.edu/Courses/comp426-f15/jquery-1.11.3.js"></script>
+	</head>
+	<body>
+		<div id="game">
+			<!-- Controls across top of game that control game simulation -->
+			<div id="control-panel">
+				<h3>Conway's Game of Life</h3>
+				<button id="btn-random" type="button">Random</button>
+				<button id="btn-reset" type="button">Reset</button>
+				<button id="btn-pause" type="button">Pause</button>
+				<button id="btn-step" type="button">Step</button>
+			</div>
+			
+			<!-- Game content -->
+			<div id="main-panel">
+				Grid
+			</div>
+			
+			<!-- Parameters affecting rules of the game -->
+			<div id="parameters-panel">
+				<div class="parameter">
+					<label for="grid-size-slider">Grid Size</label> <br>
+					<input id="grid-size-slider" type="range" min="20" max="200" step="5" value="20">
+				</div>
+				<div class="parameter">
+					<label for="delay-slider">Delay</label> <br>
+					<input id="delay-slider" type="range" min="1" max="1000" step="20" value="200">
+				</div>
+				<div class="parameter">
+					<label for="cell-state-select">Outside Cells</label> <br>
+					<select id="cell-state-select">
+						<option value="alive">Alive</option>
+						<option value="dead" selected="selected">Dead</option>
+						<option value="toroidal">Toroidal</option>
+					</select>
+				</div>
+				<div class="parameter">
+					<label for="r-select">Neighbor Radius</label> <br>
+					<select id="r-select"></select>
+				</div>
+				<div class="parameter">
+					<label for="l-select">Loneliness</label> <br>
+					<select id="l-select"></select>
+				</div>
+				<div class="parameter">
+					<label for="o-select">Overpopulation</label> <br>
+					<select id="o-select"></select>
+				</div>
+				<div class="parameter">
+					<label for="gmin-select">Generation Min</label> <br>
+					<select id="gmin-select"></select>
+				</div>
+				<div class="parameter">
+					<label for="gmax-select">Generation Max</label> <br>
+					<select id="gmax-select"></select>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
