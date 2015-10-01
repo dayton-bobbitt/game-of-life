@@ -99,10 +99,14 @@ Grid.prototype.get_cell_state = function() {
 	var cells = this.build_matrix(this.size, this.size);
 	$("td").each(function(index,cell) {
 		var pos = get_cell_position($(cell).attr("id"));
+        var r = pos[0];
+        var c = pos[1];
 		if (cell_alive(cell)) {
-			cells[pos[0]][pos[1]] = 1;
-		} else {
-			cells[pos[0]][pos[1]] = 0;
+			cells[r][c] = 1;
+		} else if (cell_was_alive(cell)) {
+            cells[r][c] = 2;
+        } else {
+			cells[r][c] = 0;
 		}
 	});
     return cells;
@@ -110,6 +114,10 @@ Grid.prototype.get_cell_state = function() {
 
 var cell_alive = function(cell) {
     return $(cell).hasClass("alive");
+};
+
+var cell_was_alive = function(cell) {
+    return $(cell).hasClass("was-alive");
 };
 
 // Count number of alive neighbors for each cell and update cell state based on that value
@@ -132,8 +140,7 @@ Grid.prototype.count_alive_neighbors = function(states, row, col) {
             if (this.pointOutsideGrid(r,c)) {
                 count += this.checkOutsideNeighbor(r,c);
             } else if (r != row || c != col) {
-                // states is matrix of 1s and 0s, representing alive and dead cells
-                count += states[r][c];
+                if (states[r][c] == 1) count++;
             }
         }
     }
@@ -187,6 +194,10 @@ Grid.prototype.revive = function(id) {
     this.change_cell_state(id,"alive");
 };
 
+Grid.prototype.was_alive = function(id) {
+    this.change_cell_state(id,"was-alive");
+};
+
 Grid.prototype.flip_state = function(id) {
     if ($("#" + id).hasClass("alive")) this.change_cell_state(id,"dead");
     else this.change_cell_state(id,"alive");
@@ -199,9 +210,12 @@ Grid.prototype.change_cell_state = function(id,new_state) {
         if ($(cell).hasClass("alive")) $(cell).addClass("was-alive");
         else $(cell).addClass("dead");
         $(cell).removeClass("alive");
-    } else {
+    } else if (new_state === "alive") {
         $(cell).removeClass();
         $(cell).addClass("alive");
+    } else {
+        $(cell).removeClass();
+        $(cell).addClass("was-alive");
     }
 };
 
@@ -259,6 +273,9 @@ Grid.prototype.draw = function() {
 };
 
 Grid.prototype.expand_grid = function(old_size) {
+    // Current state of cells before expanding grid
+    var cell_state = this.get_cell_state();
+
     for (var r=0; r < this.size; r++) {
         // Expand columns of existing rows by this.size - old_size cells
         if (r < old_size) this.expand_row(r, old_size);
@@ -266,14 +283,25 @@ Grid.prototype.expand_grid = function(old_size) {
             this.build_row(r);
         }
     }
-    // For now, simply make everything dead
-    // Should eventually reposition the current state to the center and continue simulating
     this.reset();
+    this.redraw_state(old_size,cell_state);
 };
 
 Grid.prototype.expand_row = function(r,old_size) {
     for (var c=old_size; c < this.size; c++) {
         this.create_cell(r,c);
+    }
+};
+
+Grid.prototype.redraw_state = function(old_size,state) {
+    var start_pos = Math.floor(this.size/2 - old_size/2);
+    var stop_pos = start_pos + old_size;
+    for (var r=start_pos, old_r=0; r<stop_pos; r++, old_r++) {
+        for (var c=start_pos, old_c=0; c<stop_pos; c++, old_c++) {
+            if (state[old_r][old_c] == 1) this.revive(cell_id(r,c));
+            else if (state[old_r][old_c] == 2) this.was_alive(cell_id(r,c));
+            else this.kill(cell_id(r,c));
+        }
     }
 };
 
