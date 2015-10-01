@@ -9,13 +9,29 @@ var Grid = function() {
 	this.o = 3;
 	this.gmin = 3;
 	this.gmax = 3;
+    this.grid_drawn = false;
 };
 
 ///////////////////////////////////////////////
 // Setters and validators for GoL parameters //
 ///////////////////////////////////////////////
 Grid.prototype.set_size = function(size) {
-	if (this.valid_size(size)) this.size = size;
+	if (this.valid_size(size)) {
+        if (this.grid_drawn) {
+            var old_size = this.size;
+            if (size > old_size) {
+                this.size = size;
+                this.expand_grid(old_size);
+            } else if (size < old_size) {
+                this.size = size;
+                this.shrink_grid(old_size);
+            }
+            // Do nothing if new size is equal to old size
+        } else {
+            // If a grid hasn't been drawn, simply change the parameter
+            this.size = size;
+        }
+    }
 };
 
 Grid.prototype.valid_size = function(size) {
@@ -236,12 +252,46 @@ var random_state = function() {
 
 Grid.prototype.draw = function() {
     for (var r=0; r<this.size; r++) {
-        this.create_row(r);
-        for (var c=0; c<this.size; c++) {
-            this.create_cell(r,c);
+        this.build_row(r);
+    }
+    this.grid_drawn = true;
+    this.random();
+};
+
+Grid.prototype.expand_grid = function(old_size) {
+    for (var r=0; r < this.size; r++) {
+        // Expand columns of existing rows by this.size - old_size cells
+        if (r < old_size) this.expand_row(r, old_size);
+        else {
+            this.build_row(r);
         }
     }
-    this.random();
+    // For now, simply make everything dead
+    // Should eventually reposition the current state to the center and continue simulating
+    this.reset();
+};
+
+Grid.prototype.expand_row = function(r,old_size) {
+    for (var c=old_size; c < this.size; c++) {
+        this.create_cell(r,c);
+    }
+};
+
+Grid.prototype.shrink_grid = function(old_size) {
+
+};
+
+// Create new row r and fill with cells
+Grid.prototype.build_row = function(r) {
+    this.create_row(r);
+    this.fill_row(r);
+};
+
+// Fill row r with cells
+Grid.prototype.fill_row = function(r) {
+    for (var c=0; c<this.size; c++) {
+        this.create_cell(r,c);
+    }
 };
 
 Grid.prototype.create_row = function(r) {
@@ -250,6 +300,7 @@ Grid.prototype.create_row = function(r) {
 };
 
 Grid.prototype.create_cell = function(r,c) {
-    var cell = $("<td></td>").attr("id", r + "_" + c);
+    var cell = $("<td></td>").attr("id", cell_id(r,c));
     $("#row_" + r).append(cell);
 };
+

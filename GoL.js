@@ -13,17 +13,23 @@ $(document).ready(function() {
 
     // Generate random cell arrangement on button press
     $("#btn-random").on("click", function() {
-       grid.random();
+        grid.random();
     });
 
     // Clear grid (force all cells to be dead state)
     $("#btn-reset").on("click", function() {
-       grid.reset();
+        grid.reset();
     });
 
     // Update state of cells by applying rules one time
     $("#btn-step").on("click", function() {
-       grid.step();
+        grid.step();
+    });
+
+    // Resize grid
+    $("#grid-size-slider").on("change", function() {
+        // Get slider value
+        grid.set_size(+$(this).val());
     });
 });
 
