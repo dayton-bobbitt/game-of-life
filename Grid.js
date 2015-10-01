@@ -315,6 +315,8 @@ Grid.prototype.apply_state_to_cell = function(r,c,state) {
     else this.kill(cell_id(r,c));
 };
 
+
+// Reduce grid size - maintain state of the cells in the center of current grid that fit within the new grid
 Grid.prototype.shrink_grid = function(old_size,state) {
     // Remove rows and columns no longer needed
     for (var r=0; r<old_size; r++) {
@@ -324,6 +326,7 @@ Grid.prototype.shrink_grid = function(old_size,state) {
     this.redraw_state(state,old_size);
 };
 
+// Remove cells from rows that no longer fit within the grid
 Grid.prototype.shrink_row = function(r,old_size) {
     for (var c=this.size; c<old_size; c++) {
         this.remove_cell(r,c);
