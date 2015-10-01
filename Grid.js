@@ -1,5 +1,7 @@
 // Copyright 2015 Dayton Bobbitt
 
+// STEP BACK??? STACK OF LAST X CELL_STATES!!!
+
 var Grid = function() {
 	// Initialize with default values
 	this.size = 20;
@@ -17,14 +19,15 @@ var Grid = function() {
 ///////////////////////////////////////////////
 Grid.prototype.set_size = function(size) {
 	if (this.valid_size(size)) {
-        if (this.grid_drawn) {
+        if (this.grid_drawn && size != this.size) {
             var old_size = this.size;
+            var old_state = this.get_cell_state();  // Current state of cells before expanding grid
+            this.size = size;
+            this.reset();
             if (size > old_size) {
-                this.size = size;
-                this.expand_grid(old_size);
-            } else if (size < old_size) {
-                this.size = size;
-                this.shrink_grid(old_size);
+                this.expand_grid(old_size,old_state);
+            } else {
+                this.shrink_grid(old_size,old_state);
             }
             // Do nothing if new size is equal to old size
         } else {
@@ -272,10 +275,7 @@ Grid.prototype.draw = function() {
     this.random();
 };
 
-Grid.prototype.expand_grid = function(old_size) {
-    // Current state of cells before expanding grid
-    var cell_state = this.get_cell_state();
-
+Grid.prototype.expand_grid = function(old_size,old_state) {
     for (var r=0; r < this.size; r++) {
         // Expand columns of existing rows by this.size - old_size cells
         if (r < old_size) this.expand_row(r, old_size);
@@ -284,7 +284,7 @@ Grid.prototype.expand_grid = function(old_size) {
         }
     }
     this.reset();
-    this.redraw_state(old_size,cell_state);
+    this.redraw_state(old_state,old_size);
 };
 
 Grid.prototype.expand_row = function(r,old_size) {
@@ -293,22 +293,49 @@ Grid.prototype.expand_row = function(r,old_size) {
     }
 };
 
-Grid.prototype.redraw_state = function(old_size,state) {
-    var start_pos = Math.floor(this.size/2 - old_size/2);
+Grid.prototype.redraw_state = function(state,old_size) {
+    // old_size defaults to current size if not specified - allows for a specific state to be applied of matching size
+    old_size = old_size || this.size;
+    var start_pos = Math.floor(this.size/2 - old_size/2 + 0.5);
     var stop_pos = start_pos + old_size;
     for (var r=start_pos, old_r=0; r<stop_pos; r++, old_r++) {
-        for (var c=start_pos, old_c=0; c<stop_pos; c++, old_c++) {
-            if (state[old_r][old_c] == 1) this.revive(cell_id(r,c));
-            else if (state[old_r][old_c] == 2) this.was_alive(cell_id(r,c));
-            else this.kill(cell_id(r,c));
+        if (r >= 0) {
+            for (var c=start_pos, old_c=0; c<stop_pos; c++, old_c++) {
+                if (c >= 0) {
+                    this.apply_state_to_cell(r,c,state[old_r][old_c]);
+                }
+            }
         }
     }
 };
 
-Grid.prototype.shrink_grid = function(old_size) {
-    // Center the new grid over the old grid and grab the cells that appear in both
-    // Resize the grid
-    // Draw the states into the new grid
+Grid.prototype.apply_state_to_cell = function(r,c,state) {
+    if (state == 1) this.revive(cell_id(r,c));
+    else if (state == 2) this.was_alive(cell_id(r,c));
+    else this.kill(cell_id(r,c));
+};
+
+Grid.prototype.shrink_grid = function(old_size,state) {
+    // Remove rows and columns no longer needed
+    for (var r=0; r<old_size; r++) {
+        if (r < this.size) this.shrink_row(r,old_size);
+        else this.remove_row(r);
+    }
+    this.redraw_state(state,old_size);
+};
+
+Grid.prototype.shrink_row = function(r,old_size) {
+    for (var c=this.size; c<old_size; c++) {
+        this.remove_cell(r,c);
+    }
+};
+
+Grid.prototype.remove_row = function(r) {
+    $("#row_" + r).remove();
+};
+
+Grid.prototype.remove_cell = function(r,c) {
+    $("#" + cell_id(r,c)).remove();
 };
 
 // Create new row r and fill with cells
@@ -333,4 +360,3 @@ Grid.prototype.create_cell = function(r,c) {
     var cell = $("<td></td>").attr("id", cell_id(r,c));
     $("#row_" + r).append(cell);
 };
-
