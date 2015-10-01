@@ -7,7 +7,6 @@ body {
 div {
 	margin: auto;
 	text-align: center;
-	/*border: 1px solid black;*/
 }
 
 select {
@@ -19,16 +18,16 @@ td {
 }
 
 table {
-	width: 400px;
-	height: 400px;
+	width: 600px;
+	height: 600px;
 	border-collapse: collapse;
 	table-layout: fixed;
 }
 
 #game {
 	position: relative;
-	width: 575px;
-	height: 500px;
+	width: 775px;
+	height: 700px;
 }
 
 #grid {
@@ -42,7 +41,7 @@ table {
 	position: absolute;
 	top: 0;
 	left: 0;
-	width: 400px;
+	width: 600px;
 	height: 100px;
 }
 
@@ -50,8 +49,8 @@ table {
 	position: absolute;
 	bottom: 0;
 	left: 0;
-	width: 400px;
-	height: 400px;
+	width: 600px;
+	height: 600px;
 	background-color: white;
 }
 
@@ -60,7 +59,7 @@ table {
 	bottom: 0;
 	right: 0;
 	width: 175px;
-	height: 400px;
+	height: 500px;
 }
 
 .parameter:not(:first-child) {

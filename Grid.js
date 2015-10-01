@@ -306,7 +306,9 @@ Grid.prototype.redraw_state = function(old_size,state) {
 };
 
 Grid.prototype.shrink_grid = function(old_size) {
-
+    // Center the new grid over the old grid and grab the cells that appear in both
+    // Resize the grid
+    // Draw the states into the new grid
 };
 
 // Create new row r and fill with cells
