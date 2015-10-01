@@ -21,13 +21,13 @@ Grid.prototype.set_size = function(size) {
 	if (this.valid_size(size)) {
         if (this.grid_drawn && size != this.size) {
             var old_size = this.size;
-            var old_state = this.get_cell_state();  // Current state of cells before expanding grid
+            var state = this.get_cell_state();  // Current state of cells before expanding grid
             this.size = size;
             this.reset();
             if (size > old_size) {
-                this.expand_grid(old_size,old_state);
+                this.expand_grid(state);
             } else {
-                this.shrink_grid(old_size,old_state);
+                this.shrink_grid(state);
             }
             // Do nothing if new size is equal to old size
         } else {
@@ -275,8 +275,9 @@ Grid.prototype.draw = function() {
     this.random();
 };
 
-Grid.prototype.expand_grid = function(old_size,old_state) {
+Grid.prototype.expand_grid = function(state) {
     for (var r=0; r < this.size; r++) {
+        var old_size = state.length;
         // Expand columns of existing rows by this.size - old_size cells
         if (r < old_size) this.expand_row(r, old_size);
         else {
@@ -284,21 +285,28 @@ Grid.prototype.expand_grid = function(old_size,old_state) {
         }
     }
     this.reset();
-    this.redraw_state(old_state,old_size);
+    this.redraw_state(state);
 };
 
-Grid.prototype.expand_row = function(r,old_size) {
-    for (var c=old_size; c < this.size; c++) {
+Grid.prototype.expand_row = function(r,old_grid_right_side) {
+    for (var c=old_grid_right_side; c < this.size; c++) {
         this.create_cell(r,c);
     }
 };
 
-Grid.prototype.redraw_state = function(state,old_size) {
-    // old_size defaults to current size if not specified - allows for a specific state to be applied of matching size
-    old_size = old_size || this.size;
-    var start_pos = Math.floor(this.size/2 - old_size/2 + 0.5);
-    var stop_pos = start_pos + old_size;
+/*
+ * Apply states provided in matrix "state" to cells
+ * If "state.length" larger than current grid size, cells in the center
+ *      of "state" that fall within the current grid are applied
+ * If "state.length" smaller than current grid size, the states
+ *      in "state" are applied to a matrix equaling the size of "state" centered within the grid
+ * If "state.length" equals the current grid size, states are mapped to grid cells (1:1 mapping)
+ */
+Grid.prototype.redraw_state = function(state) {
+    var start_pos = Math.floor(this.size/2 - state.length/2 + 0.5);
+    var stop_pos = start_pos + state.length;
     for (var r=start_pos, old_r=0; r<stop_pos; r++, old_r++) {
+        // r and c can be less than zero if the state matrix being applied is larger than the current grid
         if (r >= 0) {
             for (var c=start_pos, old_c=0; c<stop_pos; c++, old_c++) {
                 if (c >= 0) {
@@ -310,25 +318,26 @@ Grid.prototype.redraw_state = function(state,old_size) {
 };
 
 Grid.prototype.apply_state_to_cell = function(r,c,state) {
-    if (state == 1) this.revive(cell_id(r,c));
-    else if (state == 2) this.was_alive(cell_id(r,c));
-    else this.kill(cell_id(r,c));
+    var cell = cell_id(r,c);
+    if (state == 1) this.revive(cell);
+    else if (state == 2) this.was_alive(cell);
+    else this.kill(cell);
 };
 
-
 // Reduce grid size - maintain state of the cells in the center of current grid that fit within the new grid
-Grid.prototype.shrink_grid = function(old_size,state) {
+Grid.prototype.shrink_grid = function(state) {
+    var old_size = state.length;
     // Remove rows and columns no longer needed
     for (var r=0; r<old_size; r++) {
         if (r < this.size) this.shrink_row(r,old_size);
         else this.remove_row(r);
     }
-    this.redraw_state(state,old_size);
+    this.redraw_state(state);
 };
 
 // Remove cells from rows that no longer fit within the grid
-Grid.prototype.shrink_row = function(r,old_size) {
-    for (var c=this.size; c<old_size; c++) {
+Grid.prototype.shrink_row = function(r,old_grid_bottom) {
+    for (var c=this.size; c<old_grid_bottom; c++) {
         this.remove_cell(r,c);
     }
 };
