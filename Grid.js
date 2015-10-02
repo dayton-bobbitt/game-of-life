@@ -12,6 +12,7 @@ var Grid = function() {
 	this.gmin = 3;
 	this.gmax = 3;
     this.grid_drawn = false;
+    this.history = [];
 };
 
 ///////////////////////////////////////////////
@@ -94,7 +95,30 @@ Grid.prototype.valid_gmax = function(gmax) {
 /////////////////////////////////
 Grid.prototype.step = function() {
 	var cell_state = this.get_cell_state();
-	this.update_cell_states(cell_state);
+	var state_changed = this.update_cell_states(cell_state);
+    // Shouldn't save state if nothing changed
+    /*if (state_changed) */this.save_state(cell_state);
+};
+
+Grid.prototype.step_back = function() {
+    if (!this.history_empty()) {
+        this.reset();
+        var state = this.history.pop();
+        this.redraw_state(state);
+    }
+};
+
+Grid.prototype.save_state = function (state) {
+    this.history.push(state);
+    if (this.history.length > 99) this.history.shift();    // Remove oldest state
+};
+
+Grid.prototype.history_empty = function() {
+    return this.history.length == 0;
+};
+
+Grid.prototype.empty_history = function() {
+    this.history.length = 0;
 };
 
 // Populate matrix with 1s and 0s, representing alive and dead cells
@@ -125,13 +149,17 @@ var cell_was_alive = function(cell) {
 
 // Count number of alive neighbors for each cell and update cell state based on that value
 Grid.prototype.update_cell_states = function(cell_states) {
+    //var state_changed = false;
 	for (var r=0; r<this.size; r++) {
 		for (var c=0; c<this.size; c++) {
 			var alive_neighbor_count = this.count_alive_neighbors(cell_states,r,c);
+            //if (alive_neighbor_count >= this.l && alive_neighbor_count <= this.o) state_changed = true;
             var cell_alive = cell_states[r][c] == 1;
             this.update_cell_state(alive_neighbor_count,cell_alive,r,c);
 		}
 	}
+    //alert(state_changed);
+    //return state_changed;
 };
 
 Grid.prototype.count_alive_neighbors = function(states, row, col) {

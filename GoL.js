@@ -6,18 +6,21 @@ $(document).ready(function() {
         if (!paused) {
             grid.step();
             setTimeout(play,parameters["delay"]);
+            disable_button("btn-step-back");
         }
     };
 
     var resume = function() {
         paused = false;
         disable_button("btn-step");
+        disable_button("btn-step-back");
         play();
     };
 
     var pause = function() {
         paused = true;
         enable_button("btn-step");
+        if (!grid.history_empty()) enable_button("btn-step-back");
     };
 
     // Initialize parameters with defaults
@@ -44,11 +47,15 @@ $(document).ready(function() {
     // Generate random cell arrangement on button press
     $("#btn-random").on("click", function() {
         grid.random();
+        grid.empty_history();
+        disable_button("btn-step-back");
     });
 
     // Clear grid (force all cells to be dead state)
     $("#btn-reset").on("click", function() {
         grid.reset();
+        grid.empty_history();
+        disable_button("btn-step-back");
     });
 
     // Play/pause simulation
@@ -65,6 +72,12 @@ $(document).ready(function() {
     // Update state of cells by applying rules one time
     $("#btn-step").on("click", function() {
         if (paused) grid.step();
+        enable_button("btn-step-back");
+    });
+
+    $("#btn-step-back").on("click", function() {
+        grid.step_back();
+        if (grid.history_empty()) disable_button("btn-step-back");
     });
 
     /*
