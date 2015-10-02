@@ -1,10 +1,6 @@
 // Copyright 2015 Dayton Bobbitt
 
 $(document).ready(function() {
-    // Initialize parameters with defaults
-    var parameters = {"r": 1, "l": 2, "o": 3, "gmin": 3, "gmax": 3, "delay": 200};
-    var paused = false;
-
     // Repeatedly step through simulation with parameters["delay"] amount of time between steps
     var play = function() {
         if (!paused) {
@@ -12,6 +8,21 @@ $(document).ready(function() {
             setTimeout(play,parameters["delay"]);
         }
     };
+
+    var resume = function() {
+        paused = false;
+        disable_button("btn-step");
+        play();
+    };
+
+    var pause = function() {
+        paused = true;
+        enable_button("btn-step");
+    };
+
+    // Initialize parameters with defaults
+    var parameters = {"r": 1, "l": 2, "o": 3, "gmin": 3, "gmax": 3, "delay": 200};
+    var paused = false;
 
     populate_dropdowns(parameters);
 	var grid = new Grid();
@@ -43,18 +54,17 @@ $(document).ready(function() {
     // Play/pause simulation
     $("#btn-pause").on("click", function() {
         if (paused) {
-            paused = false;
+            resume();
             $(this).text("Pause");
-            play();
         } else {
-            paused = true;
+            pause();
             $(this).text("Resume");
         }
     });
 
     // Update state of cells by applying rules one time
     $("#btn-step").on("click", function() {
-        grid.step();
+        if (paused) grid.step();
     });
 
     /*
@@ -89,7 +99,7 @@ $(document).ready(function() {
     // Set loneliness threshold
     $("#select-l").on("change", function() {
         parameters["l"] = +$(this).val();
-        grid.set_r(parameters["l"]);
+        grid.set_l(parameters["l"]);
     });
 
     // Set overpopulation threshold
@@ -198,4 +208,12 @@ var reset_dropdowns = function() {
 
 var empty_dropdown = function(id) {
     $("#" + id).empty();
+};
+
+var enable_button = function(id) {
+    $("#" + id).prop("disabled", false);
+};
+
+var disable_button = function(id) {
+    $("#" + id).prop("disabled", true);
 };
