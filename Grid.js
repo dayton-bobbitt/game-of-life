@@ -256,14 +256,15 @@ Grid.prototype.reset = function() {
 
 // Populate table with alive or dead cells
 Grid.prototype.random = function() {
+    var alive_threshold = Math.random() * 0.4 + 0.5;    // Random value between 0.5 and 0.9
     $("td").each(function() {
         $(this).removeClass();
-        $(this).addClass(random_state());
+        $(this).addClass(random_state(alive_threshold));
     });
 };
 
-var random_state = function() {
-    if (Math.random() > 0.7) return "alive";
+var random_state = function(alive_threshold) {
+    if (Math.random() > alive_threshold) return "alive";
     return "dead";
 };
 
