@@ -96,8 +96,9 @@ Grid.prototype.valid_gmax = function(gmax) {
 Grid.prototype.step = function() {
 	var cell_state = this.get_cell_state();
 	var state_changed = this.update_cell_states(cell_state);
-    // Shouldn't save state if nothing changed
-    /*if (state_changed) */this.save_state(cell_state);
+    // Shouldn't save state if nothing changed -- BROKEN
+    /*if (state_changed) */
+    this.save_state(cell_state);
 };
 
 Grid.prototype.step_back = function() {
@@ -153,11 +154,13 @@ Grid.prototype.update_cell_states = function(cell_states) {
 	for (var r=0; r<this.size; r++) {
 		for (var c=0; c<this.size; c++) {
 			var alive_neighbor_count = this.count_alive_neighbors(cell_states,r,c);
+            // Attempt to determine if state changed -- BROKEN
             //if (alive_neighbor_count >= this.l && alive_neighbor_count <= this.o) state_changed = true;
             var cell_alive = cell_states[r][c] == 1;
             this.update_cell_state(alive_neighbor_count,cell_alive,r,c);
 		}
 	}
+    // Attempt to determine if state changed -- BROKEN
     //alert(state_changed);
     //return state_changed;
 };
@@ -239,6 +242,7 @@ Grid.prototype.change_cell_state = function(id,new_state) {
     if (new_state === "dead") {
         // If cell previously alive, make next state 'was-alive', otherwise 'dead'
         if ($(cell).hasClass("alive")) $(cell).addClass("was-alive");
+        else if ($(cell).hasClass("was-alive")) return;
         else $(cell).addClass("dead");
         $(cell).removeClass("alive");
     } else if (new_state === "alive") {

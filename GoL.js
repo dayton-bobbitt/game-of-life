@@ -40,7 +40,7 @@ $(document).ready(function() {
     // Register click handler for cells
     $("body").on("click", "td", null, function(e) {
         if (e.shiftKey) grid.revive(e.target.id);
-        else if (e.ctrlKey) grid.kill(e.target.id);
+        else if (e.altKey) grid.kill(e.target.id);
         else grid.flip_state(e.target.id);
     });
 
